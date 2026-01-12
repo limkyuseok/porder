@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <windows.h>
+
+#define SIZE 10
+
+int main()
+{
+#pragma region 포인터 배열
+	
+	const char* dialog[SIZE];
+		
+	dialog[0] = "무슨 일이시죠?";
+	dialog[1] = "저,,,의뢰를 하고 싶은데요,,,";
+	dialog[2] = "무슨 일이신가요?";
+	dialog[3] = "혹시 사람도 찾아주시나요?";
+	dialog[4] = "네. 가능합니다.";
+	dialog[5] = "그럼 사람 한 명만 찾아주세요.";
+	dialog[6] = "혹시 사진이나 특징을 알 수 있을까요?";
+	dialog[7] = "아. 네. 여기 사진이예요.";
+	dialog[8] = "흠,,흑발에 덩치가 왜소한 남성이군요";
+	dialog[9] = "네. 잘 부탁드리겠습니다.";
+	
+	// 0x0000 : 이전에 누른 적이 없고 호출 시점에도 눌려있지 않은 상태
+
+	// 0x0001 : 이전에 누른 적이 있고 호출 시점에는 눌려있지 않은 상태
+
+	// 0x8000 : 이전에 누른 적이 없고 호출 시점에는 눌려있는 상태
+
+	// 0x8001 : 이전에 누른 적이 있고 호출 시점에도 눌려있는 상태
+
+	int index = 0;
+	int max = 10;
+
+	while (1)
+	{
+		if (GetAsyncKeyState(VK_SPACE) & 0x0001)
+		{
+			if (index < max)
+			{
+				if (index % 2 == 0)
+					printf("탐정 : %s\n", dialog[index]);
+				else
+					printf("의뢰인 : %s\n", dialog[index]);
+
+				index++;
+			}
+		}
+	}
+#pragma endregion
+
+	
+	return 0;
+
+}
