@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Souce.c1">
+    <None Include="Source.c1">
       <Filter>소스 파일</Filter>
     </None>
   </ItemGroup>
