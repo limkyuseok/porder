@@ -1,2 +1,10 @@
 ﻿  Source.c
-  Program.vcxproj -> C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(38,23): warning C4013: 'malloc'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(38,16): warning C4312: '형식 캐스트': 'int'에서 더 큰 'char *'(으)로의 변환입니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(39,13): warning C4047: '==': 'int'의 간접 참조 수준이 'void *'과(와) 다릅니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(51,9): error C2109: 첨자는 배열 또는 포인터 형식을 사용해야 합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(54,9): warning C4477: 'printf' : 서식 문자열 '%s'에 'char *' 형식의 인수가 필요하지만 variadic 인수 1의 형식이 'int'입니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(54,9): warning C4313: 'printf': 서식 문자열의 '%s'이(가) int' 형식의 인수 1과(와) 충돌합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(56,2): warning C4013: 'free'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(29,7): warning C4047: '초기화 중': 'char'의 간접 참조 수준이 'void *'과(와) 다릅니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(38,7): warning C4047: '초기화 중': 'char'의 간접 참조 수준이 'char *'과(와) 다릅니다.
