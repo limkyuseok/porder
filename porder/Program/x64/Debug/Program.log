@@ -1,3 +1,14 @@
 ﻿  Source.c
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(78,44): warning C4267: '함수': 'size_t'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  Program.vcxproj -> C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(86,2): warning C4013: 'PERR'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(107,2): warning C4013: 'SetConsoleCursorINFO'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(117,2): warning C4013: 'prinf'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(123,3): warning C4013: 'SetoConsoleCursorPosition'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+Source.obj : error LNK2019: print_framemain 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: input_first_valuemain 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: display_framemain 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: initialize_framemain 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: PERRcls 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: SetConsoleCursorINFOhidecursor 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: prinfprinf_frame 함수에서 참조되는 확인할 수 없는 외부 기호
+Source.obj : error LNK2019: SetoConsoleCursorPositionprinf_frame 함수에서 참조되는 확인할 수 없는 외부 기호
+C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe : fatal error LNK1120: 8개의 확인할 수 없는 외부 참조입니다.

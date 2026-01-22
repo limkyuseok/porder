@@ -1,139 +1,166 @@
+//*****************************
+//**     Rhythm Game         **
+//**       리듬 게임          **
+//**       - 시작 -           **
+//*****************************
+
 #include <stdio.h>
-#include <conio.h>
-#include <windows.h>
+#include <Windows.h>
+#include <time.h>
+#include <sddl.h>
+#include <stdlib.h>
 
-#define UP 72
-#define LEFT 75
-#define RIGHT 77
-#define DOWN 80
+#define KEY_A
+#define KEY_S
+#define KEY_D
+#define KEY_F
 
-int screenIndex;
-HANDLE screen[2];
+int note_width = 0;
+int note_height = 0;
 
-void Initialize()
-{
-	CONSOLE_CURSOR_INFO cursor;
+int PlayTimer = 0;
+int map_playing = FALSE;
+int beg_time = 0;
 
-	// 화면 버퍼를 2개 생성합니다.
-	screen[0] = CreateConsoleScreenBuffer
-	(
-		GENERIC_READ | GENERIC_WRITE,
-		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL
-	);
-	screen[1] = CreateConsoleScreenBuffer
-	(
-		GENERIC_READ | GENERIC_WRITE,
-		0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL
-	);
+COORD pos;
+int frame[26][5];
 
-	cursor.bVisible = FALSE;
+void cls(HANDLE hConsole);
+void print_frame(HANDLE handle);
+void hidecursor(HANDLE handle);
+void move_location();
+void input_first_value(HANDLE handle);
+void display_frame(HANDLE handle);
+void initialize_frame(HANDLE handle);
 
-	SetConsoleCursorInfo(screen[0], &cursor);
-	SetConsoleCursorInfo(screen[1], &cursor);
-}
-
-void Flip()
-{
-	SetConsoleActiveScreenBuffer(screen[screenIndex]);
-
-	screenIndex = !screenIndex;
-
-}
-
-void Clear()
-{
-	COORD position = { 0,0 };
-
-	DWORD dword;
-
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-
-	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	GetConsoleScreenBufferInfo(console, &buffer);
-
-	int width = buffer.srWindow.Right - buffer.srWindow.Left + 1;
-	int height = buffer.srWindow.Bottom - buffer.srWindow.Top + 1;
-	
-
-	FillConsoleOutputCharacter
-	(
-		screen[screenIndex], ' ', width * height, position, &dword
-	);
-
-}
-
-void Release()
-{
-	CloseHandle(screen[0]);
-	CloseHandle(screen[1]);
-}
-
-void Render(int x, int y, const char* character)
-{
-	DWORD dword;
-	COORD position = { x,y };
-
-	SetConsoleCursorPosition(screen[screenIndex], position);
-	WriteFile(screen[screenIndex], character, strlen(character), &dword, NULL);
-}
 
 int main()
 {
-	//position(5, 5);
+	HANDLE handle;
 
-	//printf("★");
+	handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	int x = 0;
-	int y = 0;
+	memset(frame, 0, 4 * 26 * 4);
 
-	char key = 0;
+	hidecursor(handle);
+	cls(handle);
 
-	CONSOLE_SCREEN_BUFFER_INFO console;
+	print_frame(handle);
 
-	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	GetConsoleScreenBufferInfo(hStdout, &console);
-
-	int width = console.srWindow.Right - console.srWindow.Left -2;
-	int height = console.srWindow.Bottom - console.srWindow.Top;
-
-
-	Initialize();
+	srand((unsigned)time(NULL));
 
 	while (1)
 	{
-		Flip();
+		move_location();
 
-		Clear();
+		input_first_value(handle);
 
-		key = _getch();
+		display_frame(handle);
 
-		if (key == -32 || key == 0)
-		{
-			key = _getch();
-		}
+		Sleep(1000 * 10);
 
-			switch (key)
-			{
-			case UP: if (y > 0) { y--; }
-				break;
-			case LEFT: if (x > 0) { x -= 2; }
-				break;
-			case RIGHT: if (width > x) { x+=2; }
-				break;
-			case DOWN: if (height > y) { y++; }
-				break;
-			default: printf("exception\n");
-				break;
-			}
-			
-		
-			Render(x, y, "★");
+		initialize_frame(handle);
 	}
-
-
-
+	pos.X = 1;
+	pos.Y = 30;
+	
+	SetConsoleCursorPosition(handle, pos);
 
 	return 0;
+}
+
+void cls(HANDLE hConsole)
+{
+	COORD coordScreen = { 0,0 };
+
+	BOOL bSuccess;
+	DWORD cCharsWritten;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD dwConSize;
+
+	bSuccess = GetConsoleScreenBufferInfo(hConsole, &csbi);
+	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+
+	bSuccess = FillConsoleOutputCharacter(hConsole, (TCHAR)' ',
+		dwConSize, coordScreen, &cCharsWritten);
+	PERR(bSuccess, "FillConsoleOutputCharacter");
+
+	bSuccess = GetConsoleScreenBufferInfo(hConsole, &csbi);
+	PERR(bSuccess, "ConsoleScreenBufferInfo");
+
+	bSuccess = FillConsoleOutputAttribute(hConsole, csbi.wAttributes,
+		dwConSize, coordScreen, &cCharsWritten);
+	PERR(bSuccess, "FillConsoleOutputAttribute");
+
+	bSuccess = SetConsoleCursorPosition(hConsole, coordScreen);
+	PERR(bSuccess, "SetConsoleCursorPosition");
+
+	return;
+}
+
+void hidecursor(HANDLE handle)
+{
+	CONSOLE_CURSOR_INFO info;
+
+	info.dwSize = 100;
+	info.bVisible = FALSE;
+	SetConsoleCursorINFO(handle, &info);
+}
+
+void prinf_frame(HANDLE handle)
+{
+	int i;
+
+	pos.X = 1;
+	pos.Y = 1;
+	SetConsoleCursorPosition(handle, pos);
+	printf("\u250D\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u2511");
+
+	for (i = 2; i < 25; i++)
+	{
+		pos.X = 1;
+		pos.Y = 1;
+		SetoConsoleCursorPosition(handle, pos);
+		printf("\u2502     \u2502      \u2502      \u2502      \u2502");
+	}
+
+	pos.X = 1;
+	pos.Y = 25;
+	SetConsoleCursorPosition(handle, pos);
+	printf("\u251D\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u2525");
+
+	for (i = 26; i <= 27; i++)
+	{
+		pos.X = 1;
+		pos.Y = 1;
+		SetoConsoleCursorPosition(handle, pos);
+		printf("\u2502     \u2502      \u2502      \u2502      \u2502");
+	}
+	pos.X = 1;
+	pos.Y = 28;
+	SetConsoleCursorPosition(handle, pos);
+	printf("\u2515\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2519");
+}
+
+void move_location()
+{
+	int x, y;
+
+	for (y = 25; y > 0; y--)
+	{
+		if (y == 24)
+		{
+			for (x = 4; x >= 0; x--)
+			{
+				frame[y][x] = frame[y - 2][x];
+			}
+			continue;
+		}
+		for (x = 4; x >= 0; x--)
+		{
+			frame[y][x] = frame[y - 1][x];
+		}
+	}
+	for (x = 4; x >= 0; x--)
+		frame[0][x] = 0;
 }
