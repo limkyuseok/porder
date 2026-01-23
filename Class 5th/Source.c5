@@ -137,3 +137,179 @@ int main()
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+//*****************************
+//**     Rhythm Game         **
+//**       리듬 게임          **
+//**       - 시작 -           **
+//*****************************
+
+#include <stdio.h>
+#include <Windows.h>
+#include <time.h>
+#include <sddl.h>
+#include <stdlib.h>
+
+#define KEY_A
+#define KEY_S
+#define KEY_D
+#define KEY_F
+
+int note_width = 0;
+int note_height = 0;
+
+int PlayTimer = 0;
+int map_playing = FALSE;
+int beg_time = 0;
+
+COORD pos;
+int frame[26][5];
+
+void cls(HANDLE hConsole);
+void print_frame(HANDLE handle);
+void hidecursor(HANDLE handle);
+void move_location();
+void input_first_value(HANDLE handle);
+void display_frame(HANDLE handle);
+void initialize_frame(HANDLE handle);
+
+
+int main()
+{
+	HANDLE handle;
+
+	handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	memset(frame, 0, 4 * 26 * 4);
+
+	hidecursor(handle);
+	cls(handle);
+
+	print_frame(handle);
+
+	srand((unsigned)time(NULL));
+
+	while (1)
+	{
+		move_location();
+
+		input_first_value(handle);
+
+		display_frame(handle);
+
+		Sleep(1000 * 10);
+
+		initialize_frame(handle);
+	}
+	pos.X = 1;
+	pos.Y = 30;
+	
+	SetConsoleCursorPosition(handle, pos);
+
+	return 0;
+}
+
+void cls(HANDLE hConsole)
+{
+	COORD coordScreen = { 0,0 };
+
+	BOOL bSuccess;
+	DWORD cCharsWritten;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD dwConSize;
+
+	bSuccess = GetConsoleScreenBufferInfo(hConsole, &csbi);
+	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+
+	bSuccess = FillConsoleOutputCharacter(hConsole, (TCHAR)' ',
+		dwConSize, coordScreen, &cCharsWritten);
+	PERR(bSuccess, "FillConsoleOutputCharacter");
+
+	bSuccess = GetConsoleScreenBufferInfo(hConsole, &csbi);
+	PERR(bSuccess, "ConsoleScreenBufferInfo");
+
+	bSuccess = FillConsoleOutputAttribute(hConsole, csbi.wAttributes,
+		dwConSize, coordScreen, &cCharsWritten);
+	PERR(bSuccess, "FillConsoleOutputAttribute");
+
+	bSuccess = SetConsoleCursorPosition(hConsole, coordScreen);
+	PERR(bSuccess, "SetConsoleCursorPosition");
+
+	return;
+}
+
+void hidecursor(HANDLE handle)
+{
+	CONSOLE_CURSOR_INFO info;
+
+	info.dwSize = 100;
+	info.bVisible = FALSE;
+	SetConsoleCursorINFO(handle, &info);
+}
+
+void prinf_frame(HANDLE handle)
+{
+	int i;
+
+	pos.X = 1;
+	pos.Y = 1;
+	SetConsoleCursorPosition(handle, pos);
+	printf("\u250D\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u2511");
+
+	for (i = 2; i < 25; i++)
+	{
+		pos.X = 1;
+		pos.Y = 1;
+		SetoConsoleCursorPosition(handle, pos);
+		printf("\u2502     \u2502      \u2502      \u2502      \u2502");
+	}
+
+	pos.X = 1;
+	pos.Y = 25;
+	SetConsoleCursorPosition(handle, pos);
+	printf("\u251D\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u2525");
+
+	for (i = 26; i <= 27; i++)
+	{
+		pos.X = 1;
+		pos.Y = 1;
+		SetoConsoleCursorPosition(handle, pos);
+		printf("\u2502     \u2502      \u2502      \u2502      \u2502");
+	}
+	pos.X = 1;
+	pos.Y = 28;
+	SetConsoleCursorPosition(handle, pos);
+	printf("\u2515\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2519");
+}
+
+void move_location()
+{
+	int x, y;
+
+	for (y = 25; y > 0; y--)
+	{
+		if (y == 24)
+		{
+			for (x = 4; x >= 0; x--)
+			{
+				frame[y][x] = frame[y - 2][x];
+			}
+			continue;
+		}
+		for (x = 4; x >= 0; x--)
+		{
+			frame[y][x] = frame[y - 1][x];
+		}
+	}
+	for (x = 4; x >= 0; x--)
+		frame[0][x] = 0;
+}

@@ -1,166 +1,379 @@
-//*****************************
-//**     Rhythm Game         **
-//**       리듬 게임          **
-//**       - 시작 -           **
-//*****************************
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <Windows.h>
 #include <time.h>
 #include <sddl.h>
 #include <stdlib.h>
-
-#define KEY_A
-#define KEY_S
-#define KEY_D
-#define KEY_F
-
-int note_width = 0;
-int note_height = 0;
-
-int PlayTimer = 0;
-int map_playing = FALSE;
-int beg_time = 0;
-
-COORD pos;
-int frame[26][5];
-
-void cls(HANDLE hConsole);
-void print_frame(HANDLE handle);
-void hidecursor(HANDLE handle);
-void move_location();
-void input_first_value(HANDLE handle);
-void display_frame(HANDLE handle);
-void initialize_frame(HANDLE handle);
+#include <conio.h>
+//#include "resource.rc"
 
 
-int main()
+#define KEY_A 'A'
+#define KEY_S 'S'
+#define KEY_D 'D'
+#define KEY_F 'F'
+
+#define MAX_TSTAMP 100
+#define M_ROW 10
+#define N_ROW 20
+
+#define IDB_BITMAP1 101
+#define READ_NOTE_MIL 2000
+#define Start_Pos 200
+
+HWND hWnd = NULL;
+HINSTANCE hInst = NULL;
+
+typedef struct
 {
-	HANDLE handle;
+	char AudioFilename[260];
+	int AudioLeadIn;
+	int PreviewTime;
+}GENERAL;
 
-	handle = GetStdHandle(STD_OUTPUT_HANDLE);
+typedef struct
+{
+	char Title[64];
+	char Artist[64];
+	char AudioFile[128];
+}SONG_INFO;
 
-	memset(frame, 0, 4 * 26 * 4);
+SONG_INFO SongList[] = {
+	{"Blue Sky", "DJ Alpha", "blue.wav"},
+	{"Night Drive", "Beta", "night.wav"},
+	{"Cyber Beat", "Gamma", "cyver.wav"}
+};
 
-	hidecursor(handle);
-	cls(handle);
+int SongCount = 3;
+int SongIndex = 0;
 
-	print_frame(handle);
+GENERAL M_General;
 
-	srand((unsigned)time(NULL));
+enum MENU
+{
+	MENU_START,
+	MENU_OPTION,
+	MENU_EXIT,
+	MENU_MAX
+};
+
+void DrawTitle()
+{
+	printf("\n");
+	printf("************************\n");
+	printf("      ※RHYTHM GAME※    \n");
+	printf("************************\n");
+}
+
+void DrawMenu(int select)
+{
+	const char* menu[MENU_MAX] =
+	{
+		"START GAME",
+		"OPOTION",
+		"EXIT"
+	};
+	for (int i = 0; i < MENU_MAX; i++)
+	{
+		if (i == select)
+			printf("▶ %s\n", menu[i]);
+		else
+			printf("   %s\n", menu[i]);
+	}
+}
+
+int MainMenu()
+{
+	int select = 0;
+	int key = 0;
 
 	while (1)
 	{
-		move_location();
+		system("cls");
+		DrawTitle();
+		DrawMenu(select);
 
-		input_first_value(handle);
+		key = _getch();
 
-		display_frame(handle);
-
-		Sleep(1000 * 10);
-
-		initialize_frame(handle);
+		if (key == 224)
+		{
+			key = _getch();
+			switch (key)
+			{
+			case 72 :
+				if (select > 0) select--;
+				break;
+			case 80 :
+				if (select < MENU_MAX - 1) select++;
+				break;
+			}
+		}
+		else if (key == 13)
+		{
+			return select;
+		}
 	}
-	pos.X = 1;
-	pos.Y = 30;
-	
-	SetConsoleCursorPosition(handle, pos);
+
+}
+
+//int note_width = 0;
+//int note_height = 0;
+//
+//int PlayTimer = 0;
+//int map_playing = FALSE;
+//int beg_time = 0;
+//
+//int TimingPoints[MAX_TSTAMP][M_ROW] = { 0 };
+//int ImagePoints[MAX_TSTAMP][N_ROW] = { 0 };
+//
+//void Trim(const char* src, char* dst)
+//{
+//	while (*src == ' ' || *src == '\t')
+//		src++;
+//
+//
+//	while (*src && *src != '\n' && *src != '\r')
+//	{
+//		*dst++ = *src++;
+//	}
+//
+//	*dst = '\0';
+//}
+//
+//
+//void TPoint(char* TStr)
+//{
+//	int row[6] = { 0 };
+//	char* ptr = strtok(TStr, ",");
+//	char strs[200] = { 0 };
+//	int i = 0, key = 0;
+//
+//	while (ptr != NULL)
+//	{
+//		Trim(ptr, strs);
+//		row[i] = atoi(strs);
+//		ptr = strtok(NULL, ",");
+//
+//		i++;
+//	}
+//	switch (row[0])
+//	{
+//	case 64 :
+//		key = 0;
+//		break;
+//	case 192 :
+//		key = 1;
+//		break;
+//	case 320 :
+//		key = 2;
+//		break;
+//	case 448 :
+//		key = 3;
+//		break;
+//	}
+//	TimingPoints[row[2]][key] = 1;
+//	if (row[3] == 128)
+//	{
+//		for (int n = row[2]; n <= row[5]; n++)
+//			ImagePoints[n][key] = 1;
+//	}
+//	else
+//	{
+//		ImagePoints[row[2]][key] = 1;
+//	}
+//}
+//
+//void ReadProperty_General(char* str)
+//{
+//	char nstr[200] = { 0 };
+//	char* ptr = strtok(str, ":");
+//
+//	if (ptr == NULL)return;
+//
+//	Trim(ptr, nstr);
+//
+//	if (strcmp(nstr, "AudioFilename") == 0)
+//	{
+//		ptr = strtok(NULL, ":");
+//		Trim(ptr, nstr);
+//		strcpy(M_General.AudioFilename, nstr);
+//	}
+//	else if (strcmp(nstr, "AudioLeadln") == 0)
+//	{
+//		ptr = strtok(NULL, ":");
+//		if (ptr == NULL) return;
+//
+//		Trim(ptr, nstr);
+//		M_General.AudioLeadIn = atoi(ptr);
+//	}
+//	else if (strcmp(nstr, "PreviewTime") == 0)
+//	{
+//		ptr = strtok(NULL, ":");
+//		if (ptr == NULL) return;
+//
+//		Trim(ptr, nstr);
+//		M_General.PreviewTime = atoi(ptr);
+//	}
+//}
+//
+//inline void Render()
+//{
+//	hWnd = GetConsoleWindow();
+//	hInst = GetModuleHandle(NULL);
+//	HDC hDC, hMemDC;
+//	static HDC hBackDC;
+//	HBITMAP hBackBitmap, h0ldBitmap, hNewBitmap;
+//	BITMAP Bitmap;
+//
+//	hDC = GetDC(hWnd);
+//
+//	hMemDC = CreateCompatibleDC(hDC);
+//	hBackDC = CreateCompatibleDC(hDC);
+//
+//	hBackBitmap = CreateCompatibleBitmap(hDC, 100, 500);
+//	h0ldBitmap = (HBITMAP)Select0bject(hBackDC, hBackBitmap);
+//
+//	hNewBitmap = LoadBitmap(hInst, ㅋㅌㅁMAKEINTRESOURCE(IDB_BITMAP1));
+//	Getobject(hNewBitmap, sizeof(BITMAP), &Bitmap);
+//	Selectobject(hMemDC, hNewBitmap);
+//
+//	note_width = Bitmap.bmWidth;
+//	note_height = Bitmap.bmHeight;
+//	for (int i = PlayTimer; i < PlayTimer + READ_NOTE_MIL; i++)
+//	{
+//		if (PlayTimer < 0)
+//			break;
+//		for (int j = 0; j < 4; j++)
+//		{
+//			if (ImagePoints[i][j] == 1)
+//			{
+//				GdiTransparentBit(hBackDC, j * Bitmap.bmWidth + Start_Pos, (i - PlayTimer - 500) * (-0.9), Bitmap.bmWidth, Bitmap.bmHeight, hMemDC, 0, 0, Bitmap.bmWidth, Bitmap.bmHeight, Bitmap.bmHeight, RGB(255, 0, 228));
+//
+//			}
+//		}
+//	}
+//	Deleteobject(hNewBitmap);
+//
+//	BitBlt(hDC, 0, 0, 1000, 500, hBackDC, 0, 0, SRCCOPY);
+//
+//	Deleteobject(Selectobject(hBackDC, hBackBitmap));
+//	DeleteDC(hBackDC);
+//	DeleteDC(hMemDC);
+//
+//	ReleaseDC(hWnd, hDC);
+//}
+
+int main()
+{
+	int menu = MainMenu();
+
+	switch (menu)
+	{
+	case MENU_START :
+		printf("Game Start\n");
+		Sleep(1000);
+		break;
+	case MENU_OPTION :
+		printf("Option Menu\n");
+		Sleep(1000);
+		break;
+	case MENU_EXIT :
+		printf("EXIT\n");
+		Sleep(1000);
+		break;
+	}
+
 
 	return 0;
 }
 
-void cls(HANDLE hConsole)
+const char* MainMenuItems[] = {
+	"START",
+	"EXIT"
+};
+
+int MainMenuIndex = 0;
+
+void UpdateMainMenu(int key)
 {
-	COORD coordScreen = { 0,0 };
-
-	BOOL bSuccess;
-	DWORD cCharsWritten;
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	DWORD dwConSize;
-
-	bSuccess = GetConsoleScreenBufferInfo(hConsole, &csbi);
-	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
-
-	bSuccess = FillConsoleOutputCharacter(hConsole, (TCHAR)' ',
-		dwConSize, coordScreen, &cCharsWritten);
-	PERR(bSuccess, "FillConsoleOutputCharacter");
-
-	bSuccess = GetConsoleScreenBufferInfo(hConsole, &csbi);
-	PERR(bSuccess, "ConsoleScreenBufferInfo");
-
-	bSuccess = FillConsoleOutputAttribute(hConsole, csbi.wAttributes,
-		dwConSize, coordScreen, &cCharsWritten);
-	PERR(bSuccess, "FillConsoleOutputAttribute");
-
-	bSuccess = SetConsoleCursorPosition(hConsole, coordScreen);
-	PERR(bSuccess, "SetConsoleCursorPosition");
-
-	return;
+	if (key == VK_UP)
+		MainMenuIndex = (MainMenuIndex - 1 + 2) % 2;
+	if (key == VK_DOWN)
+		MainMenuIndex = (MainMenuIndex - 1) % 2;
+	if (key == VK_RETURN)
+	{
+		if (MainMenuIndex == 0)
+			g_GameState = STATE_SONG_SELECT;
+		else
+			g_GameState = STATE_EXIT;
+	}
 }
 
-void hidecursor(HANDLE handle)
+void RenderMainMenu(HDC hdc)
 {
-	CONSOLE_CURSOR_INFO info;
+	for (int i = 0; i < 2; i++)
+	{
+		if (i == MainMenuIndex)
+			TextOut(hdc, 100, 100 + 1 * 40, "▶", 2);
 
-	info.dwSize = 100;
-	info.bVisible = FALSE;
-	SetConsoleCursorINFO(handle, &info);
+		Textout(hdc, 130, 100 + i * 40,
+			MainMenuItems[i],
+			strlen(MainMenuItems[i]));
+	}
 }
 
-void prinf_frame(HANDLE handle)
+void UpdateSongSelect(int key)
 {
-	int i;
+	if (key == VK_UP)
+		SongIndex = (SongIndex - 1 + SongCount) % SongCount;
 
-	pos.X = 1;
-	pos.Y = 1;
-	SetConsoleCursorPosition(handle, pos);
-	printf("\u250D\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u252F\u2501\u2501\u2501\u2501\u2501\u2511");
+	if (key == VK_DOWN)
+		SongIndex = (SongIndex + 1) % SongCount;
 
-	for (i = 2; i < 25; i++)
-	{
-		pos.X = 1;
-		pos.Y = 1;
-		SetoConsoleCursorPosition(handle, pos);
-		printf("\u2502     \u2502      \u2502      \u2502      \u2502");
-	}
+	if (key == VK_RETURN)
+		g_GameState = STATE_PLAY;
 
-	pos.X = 1;
-	pos.Y = 25;
-	SetConsoleCursorPosition(handle, pos);
-	printf("\u251D\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u253F\u2501\u2501\u2501\u2501\u2501\u2525");
-
-	for (i = 26; i <= 27; i++)
-	{
-		pos.X = 1;
-		pos.Y = 1;
-		SetoConsoleCursorPosition(handle, pos);
-		printf("\u2502     \u2502      \u2502      \u2502      \u2502");
-	}
-	pos.X = 1;
-	pos.Y = 28;
-	SetConsoleCursorPosition(handle, pos);
-	printf("\u2515\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2537\u2501\u2501\u2501\u2501\u2501\u2519");
+	if (key == VK_ESCAPE)
+		g_GameState  STATE_MAIN_MENU;
 }
 
-void move_location()
+void RenderSongSelect(HDC hdc)
 {
-	int x, y;
+	TextOut(hdc, 50, 40, "SELECT SONG". 11);
 
-	for (y = 25; y > 0; y--)
+	for (int i = 0; i < SongCount; i++)
 	{
-		if (y == 24)
-		{
-			for (x = 4; x >= 0; x--)
-			{
-				frame[y][x] = frame[y - 2][x];
-			}
-			continue;
-		}
-		for (x = 4; x >= 0; x--)
-		{
-			frame[y][x] = frame[y - 1][x];
-		}
+		if (i == SongIndex)
+			TextOut(hdc, 50, 80 + i * 30, "▶", 2);
+
+		TextOut(hdc, 80, 80 + i * 30,
+			SongList[i].Title,
+			strlen(SongList[i].Title));
 	}
-	for (x = 4; x >= 0; x--)
-		frame[0][x] = 0;
+}
+
+void Update(int key)
+{
+	switch (g_GameState)
+	{
+	case STATE_MAIN_MENU :
+			UpdateMainMenu(key);
+			break;
+	case STATE_SONG_SELECT :
+		UpdateSongSelect(key);
+		break;
+	}
+}
+
+void Render(HDC hdc)
+{
+	switch (g_GameState)
+	{
+	case STATE_MAIN_MENU :
+		RenderMainMenu(hdc);
+		break;
+	case STATE_SONG_SELECT :
+		RenderSongSelect(hdc);
+		break;
+	}
 }

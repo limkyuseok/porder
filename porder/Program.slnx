@@ -3,6 +3,9 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Folder Name="/솔루션 항목/">
+    <File Path="Resource.rc" />
+  </Folder>
   <Project Path="../Class 5th/Class 5th.vcxproj" Id="fa30cceb-641d-42cb-b6fa-b777e98c15d3" />
   <Project Path="../Class1th (input system)/Class1th (input system).vcxproj" Id="55678c3f-19b8-4b3d-8d55-d497a1771ae9" />
   <Project Path="../Class2th (Time)/Class2th (Time).vcxproj" Id="fde299d5-e642-4f10-a160-3ab7b3637322" />
