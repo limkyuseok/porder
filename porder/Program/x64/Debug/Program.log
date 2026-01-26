@@ -1,25 +1,2 @@
-﻿  Source.c
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(306,4): error C2065: 'g_GameState': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(306,18): error C2065: 'STATE_SONG_SELECT': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(308,4): error C2065: 'g_GameState': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(308,18): error C2065: 'STATE_EXIT': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(317,36): warning C4133: '함수': 'char [3]'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(319,3): warning C4013: 'Textout'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(334,3): error C2065: 'g_GameState': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(334,17): error C2065: 'STATE_PLAY': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(337,3): error C2065: 'g_GameState': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(337,16): error C2146: 구문 오류: ';'이(가) 'STATE_MAIN_MENU' 식별자 앞에 없습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(342,38): error C2059: 구문 오류: '상수'
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(347,34): warning C4133: '함수': 'char [3]'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(350,15): warning C4133: '함수': 'char [64]'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(351,4): warning C4267: '함수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(357,10): error C2065: 'g_GameState': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(359,7): error C2065: 'STATE_MAIN_MENU': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(362,7): error C2065: 'STATE_SONG_SELECT': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(359,7): error C2051: case 식이 상수가 아닙니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(362,7): error C2051: case 식이 상수가 아닙니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(370,10): error C2065: 'g_GameState': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(372,7): error C2065: 'STATE_MAIN_MENU': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(375,7): error C2065: 'STATE_SONG_SELECT': 선언되지 않은 식별자입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(372,7): error C2051: case 식이 상수가 아닙니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(375,7): error C2051: case 식이 상수가 아닙니다.
+﻿Source.obj : error LNK2019: TPointLoadMap 함수에서 참조되는 확인할 수 없는 외부 기호
+C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe : fatal error LNK1120: 1개의 확인할 수 없는 외부 참조입니다.
