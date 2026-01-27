@@ -7,6 +7,7 @@
 #include <conio.h>
 #include <MMSystem.h>
 #include <string.h>
+#include <locale.h>
 #pragma comment (lib, "winmm.lib")
 //#include "resource.rc"
 
@@ -24,8 +25,31 @@
 #define READ_NOTE_MIL 2000
 #define Start_Pos 200
 
+#define MAX_NOTES 1024
+
+#define NOTE_FALL_TIME 2000
+
+typedef struct
+{
+	int time;
+	int lane;
+	int active;
+}NOTE;
+
+NOTE Notes[MAX_NOTES];
+int NoteCount = 0;
+
+int MainMenu(void);
+void SongSelect(void);
+void PlayMusic(const wchar_t* path);
+void StopMusic(void);
+void PlayGame(void);
+
 HWND hWnd = NULL;
 HINSTANCE hInst = NULL;
+
+DWORD GameStartTime;
+GameStartTime = timeGetTime();
 
 typedef struct
 {
@@ -36,20 +60,23 @@ typedef struct
 
 typedef struct
 {
-	char Title[64];
-	char Artist[64];
-	char AudioFile[128];
-	char AudioPath[128];
+	wchar_t Title[64];
+	wchar_t Artist[64];
+	wchar_t AudioPath[128];
 }SONG_INFO;
 
-SONG_INFO SongList[] = {
-	{"Replica", "Yuuri", "replica.wav"},
+SONG_INFO SongList[] = 
+{
+	{L"replica", L"Yuuri", L"replica.wav"},
+	{L"가을아침", L"IU", L"Fall.wav"},
 };
 
-int SongCount = 3;
+int SongCount = sizeof(SongList) / sizeof(SongList[0]);
 int SongIndex = 0;
 
 GENERAL M_General;
+
+void LoadMapFile(const wchar_t* path);
 
 enum MENU
 {
@@ -102,6 +129,7 @@ void DrawMenu(int select)
 	}
 }
 
+
 int MainMenu()
 {
 	int select = 0;
@@ -138,24 +166,27 @@ int MainMenu()
 
 int main()
 {
-	int menu = MainMenu();
+	setlocale(LC_ALL, "");
 
-	switch (menu)
+	while (1)
 	{
-	case MENU_START :
-		printf("Game Start\n");
-		Sleep(1000);
-		break;
-	case MENU_OPTION :
-		printf("Option Menu\n");
-		Sleep(1000);
-		break;
-	case MENU_EXIT :
-		printf("EXIT\n");
-		Sleep(1000);
-		break;
-	}
+		int menu = MainMenu();
 
+		if (menu == MENU_START)
+		{
+			SongIndex = 0;
+			SongSelect();
+		}
+		else if (menu == MENU_OPTION)
+		{
+			printf("Option Menu\n");
+			Sleep(1000);
+		}
+		else if (menu == MENU_EXIT)
+		{
+			break;
+		}
+	}
 
 	return 0;
 }
@@ -189,7 +220,10 @@ void RenderMainMenu(HDC hdc)
 		if (i == MainMenuIndex)
 			TextOut(hdc, 100, 100 + 1 * 40, L"▷", 2);
 
-		TextOut(hdc, 130, 100 + i * 40,
+		TextOut(
+			hdc, 
+			130, 
+			100 + i * 40,
 			MainMenuItems[i],
 			(int)wcslen(MainMenuItems[i]));
 	}
@@ -219,7 +253,9 @@ void RenderSongSelect(HDC hdc)
 		if (i == SongIndex)
 			TextOut(hdc, 50, 80 + i * 30, L"▷", 2);
 
-		TextOut(hdc, 80, 80 + i * 30,
+		TextOut(hdc, 
+			80, 
+			80 + i * 30,
 			SongList[i].Title,
 			(int)wcslen(SongList[i].Title));
 	}
@@ -251,13 +287,9 @@ void Render(HDC hdc)
 	}
 }
 
-void PlayMusic(const char* path)
+void PlayMusic(const wchar_t* path)
 {
-	PlaySoundA(path, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-	while (1)
-	{
-		Sleep(1000);
-	}
+	PlaySoundW(path, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 }
 
 void StopMusic()
@@ -290,11 +322,14 @@ void PlayPreview(const char* path, int startMs)
 	mciSendStringA(cmd, NULL, 0, NULL);
 }
 
-void TPoint(char* TStr);
+void TPoint(char* TStr)
+{
+	printf("%s", TStr);
+}
 
 void LoadMap(const char* path)
 {
-	FILE* fp = fopen(path, "replica.wav");
+	FILE* fp = fopen(path, "r");
 	char line[256];
 
 	while (fgets(line, sizeof(line), fp))
@@ -302,4 +337,152 @@ void LoadMap(const char* path)
 		TPoint(line);
 	}
 	fclose(fp);
+}
+
+void SongSelect()
+{
+	int key = 0;
+
+	while (1)
+	{
+		system("cls");
+		wprintf(L"---SELECT SONG---\n\n");
+
+		if (SongCount <= 0)
+		{
+			wprintf(L"(No Songs Loaded)\n");
+		}
+
+		for (int i = 0; i < SongCount; i++)
+		{
+			if (i == SongIndex)
+				wprintf(L"▶ %ls\n", SongList[i].Title);
+			else
+				wprintf(L"   %ls\n", SongList[i].Title);
+		}
+		key = _getch();
+
+		if (key == 224)
+		{
+			key = _getch();
+			if (key == 72)
+				SongIndex = (SongIndex - 1 + SongCount) % SongCount;
+			if (key == 80)
+				SongIndex = (SongIndex + 1) % SongCount;
+		}
+		else if (key == 13)
+		{
+			LoadMapFile(L"replica.map");
+			PlayMusic(SongList[SongIndex].AudioPath);
+			PlayGame();
+		}
+		else if (key == 27)
+		{
+			StopMusic();
+			return;
+		}
+	}
+}
+
+void DrawGameScreen(void)
+{
+	system("cls");
+
+	wprintf(L"==========================\n");
+	wprintf(L" Now Playing : %ls\n", SongList[SongIndex].Title);
+	wprintf(L" Artist      : %ls\n", SongList[SongIndex].Artist);
+	wprintf(L"==========================\n\n");
+
+	wprintf(L"    |  A  |  S  |  D  |  F  |\n");
+	wprintf(L"----------------------------------\n");
+
+	for (int i = 0; i < 10; i++)
+	{
+		wprintf(L"    |     |     |     |\n");
+	}
+
+	wprintf(L"----------------------------------\n");
+	wprintf(L"         판정선\n");
+	wprintf(L"\n ESC : Back to Song Select\n");
+}
+
+void PlayGame(void)
+{
+	while (1)
+	{
+		DrawGameScreen();
+
+		if (_kbhit())
+		{
+			int key = _getch();
+
+			if (key == 27)
+			{
+				StopMusic();
+				return;
+			}
+		}
+		Sleep(100);
+	}
+}
+
+void LoadMapFile(const wchar_t* path)
+{
+	FILE* fp = _wfopen(path, L"r");
+	wchar_t line[256];
+
+	if (!fp)
+	{
+		wprintf(L"Failed to open map file\n");
+		return;
+	}
+
+	NoteCount = 0;
+
+	while (!feof(fp) && NoteCount < MAX_NOTES)
+	{
+		int time, lane;
+		
+		if (fwscanf(fp, L"%d %d", &time, &lane) == 2)
+		{
+			Notes[NoteCount].time = time;
+			Notes[NoteCount].lane = lane;
+			Notes[NoteCount].active = 0;
+
+			NoteCount++;
+		}
+	}
+	fclose(fp);
+
+	wprintf(L"[MAP LOADED] Notes : %d\n", NoteCount);
+	Sleep(500);
+}
+
+void UpdateNotes(void)
+{
+	DWORD now = timeGetTime() - GameStartTime;
+
+	for (int i = 0; i < NoteCount; i++)
+	{
+		if (Notes[i].active == 0)
+		{
+			if (now >= Notes[i].time - NOTE_FALL_TIME)
+			{
+				Notes[i].active = 1;
+			}
+		}
+	}
+}
+
+int GetNoteY(const NOTE* note)
+{
+	DWORD now = timeGetTime() - GameStartTime;
+
+	float progress =
+		(float)(now - (note->time - NOTE_FALL_TIME)) / NOTE_FALL_TIME;
+
+	if (progress < 0.0f) progress = 0.0f;
+	if (progress > 1.0f) progress = 1.0f;
+
+	return(int)(progress * 10);
 }

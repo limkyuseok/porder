@@ -1,2 +1,4 @@
-﻿Source.obj : error LNK2019: TPointLoadMap 함수에서 참조되는 확인할 수 없는 외부 기호
-C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe : fatal error LNK1120: 1개의 확인할 수 없는 외부 참조입니다.
+﻿  Source.c
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(222,17): warning C4133: '함수': 'const char *'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(223,29): warning C4133: '함수': 'const char *'과(와) 'const wchar_t *' 사이의 형식이 호환되지 않습니다.
+  Program.vcxproj -> C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe
