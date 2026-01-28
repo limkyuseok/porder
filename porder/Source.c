@@ -29,6 +29,14 @@
 
 #define NOTE_FALL_TIME 2000
 
+#define JUDGE_PERFECT 50
+#define JUDGE_GOOD 100
+#define JUDGE_MISS 150
+
+#define SCREEN_HEIGHT 15
+#define JUDGE_LINE_Y 10
+#define NOTE_SPEED 100
+
 typedef struct
 {
 	int time;
@@ -44,12 +52,22 @@ void SongSelect(void);
 void PlayMusic(const wchar_t* path);
 void StopMusic(void);
 void PlayGame(void);
+void ClearScreenBuffer(void);
+void DrawJudgeLine(void);
+void DrawNotes(ULONGLONG currentTime);
+void RenderGame(ULONGLONG currentTime);
+void JudgeKey(int lane, ULONGLONG currentTime);
+void UpdateMissNotes(ULONGLONG currentTime);
+void PlayGame(void);
+void UpdateNotes(ULONGLONG currentTime);
+
+ULONGLONG GameStartTime;
+ULONGLONG GetTickCount64(void);
 
 HWND hWnd = NULL;
 HINSTANCE hInst = NULL;
 
-DWORD GameStartTime;
-GameStartTime = timeGetTime();
+char Screen[SCREEN_HEIGHT][20];
 
 typedef struct
 {
@@ -65,10 +83,11 @@ typedef struct
 	wchar_t AudioPath[128];
 }SONG_INFO;
 
-SONG_INFO SongList[] = 
+SONG_INFO SongList[] =
 {
 	{L"replica", L"Yuuri", L"replica.wav"},
-	{L"가을아침", L"IU", L"Fall.wav"},
+	{L"가을아침", L"IU", L"가을아침.wav"},
+	{L"hiroin", L"BackNumber", L"hiroin.wav"},
 };
 
 int SongCount = sizeof(SongList) / sizeof(SongList[0]);
@@ -148,10 +167,10 @@ int MainMenu()
 			key = _getch();
 			switch (key)
 			{
-			case 72 :
+			case 72:
 				if (select > 0) select--;
 				break;
-			case 80 :
+			case 80:
 				if (select < MENU_MAX - 1) select++;
 				break;
 			}
@@ -167,6 +186,8 @@ int MainMenu()
 int main()
 {
 	setlocale(LC_ALL, "");
+
+	GameStartTime = timeGetTime();
 
 	while (1)
 	{
@@ -221,8 +242,8 @@ void RenderMainMenu(HDC hdc)
 			TextOut(hdc, 100, 100 + 1 * 40, L"▷", 2);
 
 		TextOut(
-			hdc, 
-			130, 
+			hdc,
+			130,
 			100 + i * 40,
 			MainMenuItems[i],
 			(int)wcslen(MainMenuItems[i]));
@@ -253,8 +274,8 @@ void RenderSongSelect(HDC hdc)
 		if (i == SongIndex)
 			TextOut(hdc, 50, 80 + i * 30, L"▷", 2);
 
-		TextOut(hdc, 
-			80, 
+		TextOut(hdc,
+			80,
 			80 + i * 30,
 			SongList[i].Title,
 			(int)wcslen(SongList[i].Title));
@@ -265,10 +286,10 @@ void Update(int key)
 {
 	switch (g_GameState)
 	{
-	case STATE_MAIN_MENU :
-			UpdateMainMenu(key);
-			break;
-	case STATE_SONG_SELECT :
+	case STATE_MAIN_MENU:
+		UpdateMainMenu(key);
+		break;
+	case STATE_SONG_SELECT:
 		UpdateSongSelect(key);
 		break;
 	}
@@ -278,10 +299,10 @@ void Render(HDC hdc)
 {
 	switch (g_GameState)
 	{
-	case STATE_MAIN_MENU :
+	case STATE_MAIN_MENU:
 		RenderMainMenu(hdc);
 		break;
-	case STATE_SONG_SELECT :
+	case STATE_SONG_SELECT:
 		RenderSongSelect(hdc);
 		break;
 	}
@@ -408,21 +429,29 @@ void DrawGameScreen(void)
 
 void PlayGame(void)
 {
+	GameStartTime = GetTickCount64();
+
 	while (1)
 	{
-		DrawGameScreen();
+		ULONGLONG now = GetTickCount64() - GameStartTime;
+
+		UpdateNotes(now);
+		UpdateMissNotes(now);
+		RenderGame(now);
 
 		if (_kbhit())
 		{
 			int key = _getch();
+			key = toupper(key);
 
 			if (key == 27)
-			{
-				StopMusic();
 				return;
-			}
+
+			int lane = GetLaneFromKey(key);
+			if (lane != -1)
+				JudgeKey(lane, now);
 		}
-		Sleep(100);
+		Sleep(16);
 	}
 }
 
@@ -442,7 +471,7 @@ void LoadMapFile(const wchar_t* path)
 	while (!feof(fp) && NoteCount < MAX_NOTES)
 	{
 		int time, lane;
-		
+
 		if (fwscanf(fp, L"%d %d", &time, &lane) == 2)
 		{
 			Notes[NoteCount].time = time;
@@ -458,9 +487,9 @@ void LoadMapFile(const wchar_t* path)
 	Sleep(500);
 }
 
-void UpdateNotes(void)
+void UpdateNotes(ULONGLONG currentTime)
 {
-	DWORD now = timeGetTime() - GameStartTime;
+	ULONGLONG now = GetTickCount64() - GameStartTime;
 
 	for (int i = 0; i < NoteCount; i++)
 	{
@@ -474,9 +503,9 @@ void UpdateNotes(void)
 	}
 }
 
-int GetNoteY(const NOTE* note)
+int GetNoteY(const NOTE* note, ULONGLONG currentTime)
 {
-	DWORD now = timeGetTime() - GameStartTime;
+	ULONGLONG now = GetTickCount64() - GameStartTime;
 
 	float progress =
 		(float)(now - (note->time - NOTE_FALL_TIME)) / NOTE_FALL_TIME;
@@ -485,4 +514,101 @@ int GetNoteY(const NOTE* note)
 	if (progress > 1.0f) progress = 1.0f;
 
 	return(int)(progress * 10);
+}
+
+int GetLaneFromKey(char key)
+{
+	switch (key)
+	{
+	case 'a': case 'A': return 0;
+	case 's': case 'S': return 1;
+	case 'd': case 'D': return 2;
+	case 'f': case 'F': return 3;
+	default: return -1;
+	}
+}
+
+void JudgeKey(int lane, ULONGLONG currentTime)
+{
+	ULONGLONG now = GetTickCount64() - GameStartTime;
+
+	for (int i = 0; i < NoteCount; i++)
+	{
+		NOTE* note = &Notes[i];
+
+		if (!note->active)continue;
+		if (note->lane != lane)continue;
+
+		int diff = abs((int)(now - note->time));
+
+		if (diff <= JUDGE_PERFECT)
+		{
+			printf("PERFECT\n");
+		}
+		else if (diff <= JUDGE_GOOD)
+		{
+			printf("GOOD\n");
+		}
+		else if (diff <= JUDGE_MISS)
+		{
+			printf("MISS\n");
+		}
+		else
+		{
+			return;
+		}
+
+		note->active = 0;
+		return;
+	}
+}
+
+void UpdateMissNotes(ULONGLONG currentTime)
+{
+	for (int i = 0; i < NoteCount; i++)
+	{
+		if (!Notes[i].active) continue;
+
+		if (currentTime > (ULONGLONG)Notes[i].time + 300)
+		{
+			Notes[i].active = 0;
+		}
+	}
+}
+
+void ClearScreenBuffer()
+{
+	for (int y = 0; y < SCREEN_HEIGHT; y++)
+		for (int x = 0; x < 20; x++)
+			Screen[y][x] = ' ';
+}
+
+void DrawNotes(ULONGLONG currentTime)
+{
+	for (int i = 0; i < NoteCount; i++)
+	{
+		if (!Notes[i].active) continue;
+
+		float progress =
+			(float)(currentTime - (Notes[i].time - NOTE_FALL_TIME)) / NOTE_FALL_TIME;
+
+		if (progress < 0.0f || progress > 1.0f)continue;
+
+		int y = (int)(progress * JUDGE_LINE_Y);
+
+		wprintf(L"NOTE lane %d at y = %d\n", Notes[i].lane, y);
+	}
+}
+
+void DrawJudgeLine(void)
+{
+	wprintf(L"__________________________\n");
+	wprintf(L"             판정선\n");
+}
+
+void RenderGame(ULONGLONG currentTime)
+{
+	ClearScreenBuffer();
+	DrawNotes(currentTime);
+	DrawJudgeLine();
 }

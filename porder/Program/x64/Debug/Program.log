@@ -1,4 +1,10 @@
 ﻿  Source.c
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(222,17): warning C4133: '함수': 'const char *'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(223,29): warning C4133: '함수': 'const char *'과(와) 'const wchar_t *' 사이의 형식이 호환되지 않습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(65,11): warning C4273: 'GetTickCount64': dll 연결이 일치하지 않습니다.
+      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\sysinfoapi.h(188,1):
+      'GetTickCount64'의 이전 정의를 참조하십시오.
+  
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(248,17): warning C4133: '함수': 'const char *'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(249,29): warning C4133: '함수': 'const char *'과(와) 'const wchar_t *' 사이의 형식이 호환되지 않습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(450,15): warning C4013: 'GetLaneFromKey'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(461,10): warning C4101: 'line' :참조되지 않은 지역 변수입니다.
   Program.vcxproj -> C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe
