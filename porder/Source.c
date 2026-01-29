@@ -12,10 +12,10 @@
 //#include "resource.rc"
 
 
-#define KEY_A 'A'
-#define KEY_S 'S'
-#define KEY_D 'D'
-#define KEY_F 'F'
+#define LANE_A_X 8
+#define LANE_S_X 14
+#define LANE_D_X 20
+#define LANE_F_X 26
 
 #define MAX_TSTAMP 100
 #define M_ROW 10
@@ -27,20 +27,26 @@
 
 #define MAX_NOTES 1024
 
-#define NOTE_FALL_TIME 2000
+#define NOTE_FALL_TIME (BEAT_MS*8)
 
 #define JUDGE_PERFECT 50
-#define JUDGE_GOOD 100
-#define JUDGE_MISS 150
+#define JUDGE_GOOD 120
+#define JUDGE_MISS 200
 
-#define SCREEN_HEIGHT 15
-#define JUDGE_LINE_Y 10
+#define SCREEN_WIDTH 40
+#define SCREEN_HEIGHT 20
+#define JUDGE_LINE_Y 12
 #define NOTE_SPEED 100
+#define JUDGE_Y_TOLERANCE 1
+
+#define BPM 200
+#define BEAT_MS (60000/ BPM)
 
 typedef struct
 {
-	int time;
+	ULONGLONG time;
 	int lane;
+	int y;
 	int active;
 }NOTE;
 
@@ -60,14 +66,21 @@ void JudgeKey(int lane, ULONGLONG currentTime);
 void UpdateMissNotes(ULONGLONG currentTime);
 void PlayGame(void);
 void UpdateNotes(ULONGLONG currentTime);
+void RenderJudge(void);
+void PresentScreen(void);
+void DrawLaneGuide(void);
+void InitConsole(void);
+void DrawKeyLabels(void);
 
 ULONGLONG GameStartTime;
-ULONGLONG GetTickCount64(void);
 
 HWND hWnd = NULL;
 HINSTANCE hInst = NULL;
 
-char Screen[SCREEN_HEIGHT][20];
+char Screen[SCREEN_HEIGHT][SCREEN_WIDTH];
+
+char JudgeText[16] = "";
+ULONGLONG JudgeTime = 0;
 
 typedef struct
 {
@@ -92,6 +105,8 @@ SONG_INFO SongList[] =
 
 int SongCount = sizeof(SongList) / sizeof(SongList[0]);
 int SongIndex = 0;
+
+int GetLaneFromKey(int key);
 
 GENERAL M_General;
 
@@ -122,6 +137,19 @@ typedef struct
 	char AudioPath[128];
 	int PreviewTime;
 } SONG;
+
+void gotoxy(int x, int y)
+{
+	COORD pos = { (SHORT)x, (SHORT)y };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+}
+
+void gotoxy(int x, int y);
+
+void InitConsole(void)
+{
+	system("mod con cols = 40 lines = 25");
+}
 
 void DrawTitle()
 {
@@ -185,6 +213,9 @@ int MainMenu()
 
 int main()
 {
+	setlocale(LC_ALL, " ");
+	InitConsole();
+
 	setlocale(LC_ALL, "");
 
 	GameStartTime = timeGetTime();
@@ -332,14 +363,14 @@ void UpdateSongPreview()
 
 void PlayPreview(const char* path, int startMs)
 {
-	char cmd[256];
+	wchar_t cmd[256];
 
-	mciSendStringA("close priview", NULL, 0, NULL);
+	mciSendStringA(L"close priview", NULL, 0, NULL);
 
-	sprintf(cmd, "open \"%s\" type mpegvideo alias preview", path);
+	sprintf(cmd, L"open \"%s\" type mpegvideo alias preview", path);
 	mciSendStringA(cmd, NULL, 0, NULL);
 
-	sprintf(cmd, "play preview from %d", startMs);
+	sprintf(cmd, L"play preview from %d", startMs);
 	mciSendStringA(cmd, NULL, 0, NULL);
 }
 
@@ -405,30 +436,21 @@ void SongSelect()
 	}
 }
 
-void DrawGameScreen(void)
+void DrawLaneGuide(void)
 {
-	system("cls");
+	int laneX[4] = { LANE_A_X, LANE_S_X, LANE_D_X, LANE_F_X };
 
-	wprintf(L"==========================\n");
-	wprintf(L" Now Playing : %ls\n", SongList[SongIndex].Title);
-	wprintf(L" Artist      : %ls\n", SongList[SongIndex].Artist);
-	wprintf(L"==========================\n\n");
-
-	wprintf(L"    |  A  |  S  |  D  |  F  |\n");
-	wprintf(L"----------------------------------\n");
-
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		wprintf(L"    |     |     |     |\n");
+		for (int y = 0; y < JUDGE_LINE_Y; y++)
+			Screen[y][laneX[i]] = '|';
 	}
-
-	wprintf(L"----------------------------------\n");
-	wprintf(L"         판정선\n");
-	wprintf(L"\n ESC : Back to Song Select\n");
 }
 
 void PlayGame(void)
 {
+	system("cls");
+
 	GameStartTime = GetTickCount64();
 
 	while (1)
@@ -477,6 +499,7 @@ void LoadMapFile(const wchar_t* path)
 			Notes[NoteCount].time = time;
 			Notes[NoteCount].lane = lane;
 			Notes[NoteCount].active = 0;
+			Notes[NoteCount].y = 0;
 
 			NoteCount++;
 		}
@@ -489,16 +512,30 @@ void LoadMapFile(const wchar_t* path)
 
 void UpdateNotes(ULONGLONG currentTime)
 {
-	ULONGLONG now = GetTickCount64() - GameStartTime;
-
 	for (int i = 0; i < NoteCount; i++)
 	{
+		ULONGLONG appearTime = Notes[i].time - NOTE_FALL_TIME;
+
+		if (currentTime < appearTime)
+			continue;
+
 		if (Notes[i].active == 0)
 		{
-			if (now >= Notes[i].time - NOTE_FALL_TIME)
-			{
-				Notes[i].active = 1;
-			}
+			Notes[i].active = 1;
+		}
+
+			float progress =
+				(float)(currentTime - appearTime) / NOTE_FALL_TIME;
+
+		if (progress < 0.0f) progress = 0.0f;
+		if (progress > 1.0f) progress = 1.0f;
+
+		Notes[i].y = (int)(progress * JUDGE_LINE_Y);
+
+		if (currentTime > Notes[i].time + JUDGE_MISS)
+		{
+			Notes[i].active = 0;
+			printf("MISS\n");
 		}
 	}
 }
@@ -516,52 +553,44 @@ int GetNoteY(const NOTE* note, ULONGLONG currentTime)
 	return(int)(progress * 10);
 }
 
-int GetLaneFromKey(char key)
+int GetLaneFromKey(int key)
 {
 	switch (key)
 	{
-	case 'a': case 'A': return 0;
-	case 's': case 'S': return 1;
-	case 'd': case 'D': return 2;
-	case 'f': case 'F': return 3;
-	default: return -1;
+	case 'A': return 0;
+	case 'S': return 1;
+	case 'D': return 2;
+	case 'F': return 3;
 	}
+	return -1;
 }
 
-void JudgeKey(int lane, ULONGLONG currentTime)
+void JudgeInput(int lane)
 {
-	ULONGLONG now = GetTickCount64() - GameStartTime;
+	ULONGLONG now = GetTickCount64();
 
 	for (int i = 0; i < NoteCount; i++)
 	{
-		NOTE* note = &Notes[i];
+		if (!Notes[i].active) continue;
+		if (Notes[i].lane != lane) continue;
 
-		if (!note->active)continue;
-		if (note->lane != lane)continue;
+		long diff = (long)(now - Notes[i].time);
 
-		int diff = abs((int)(now - note->time));
-
-		if (diff <= JUDGE_PERFECT)
+		if (abs(diff) < 100)
 		{
 			printf("PERFECT\n");
-		}
-		else if (diff <= JUDGE_GOOD)
-		{
-			printf("GOOD\n");
-		}
-		else if (diff <= JUDGE_MISS)
-		{
-			printf("MISS\n");
-		}
-		else
-		{
+			Notes[i].active = 0;
 			return;
 		}
-
-		note->active = 0;
-		return;
+		else if (abs(diff) < 200)
+		{
+			printf("GOOD\n");
+			Notes[i].active = 0;
+			return;
+		}
 	}
 }
+
 
 void UpdateMissNotes(ULONGLONG currentTime)
 {
@@ -579,36 +608,110 @@ void UpdateMissNotes(ULONGLONG currentTime)
 void ClearScreenBuffer()
 {
 	for (int y = 0; y < SCREEN_HEIGHT; y++)
-		for (int x = 0; x < 20; x++)
+		for (int x = 0; x < SCREEN_WIDTH; x++)
 			Screen[y][x] = ' ';
 }
 
 void DrawNotes(ULONGLONG currentTime)
 {
+	int laneX[4] = { LANE_A_X, LANE_S_X, LANE_D_X, LANE_F_X };
+
 	for (int i = 0; i < NoteCount; i++)
 	{
-		if (!Notes[i].active) continue;
+		if (Notes[i].active == 0)
+			continue;
 
-		float progress =
-			(float)(currentTime - (Notes[i].time - NOTE_FALL_TIME)) / NOTE_FALL_TIME;
+		if (Notes[i].y > JUDGE_LINE_Y + 2)
+			continue;
 
-		if (progress < 0.0f || progress > 1.0f)continue;
+		int x = laneX[Notes[i].lane];
+		int y = Notes[i].y;
 
-		int y = (int)(progress * JUDGE_LINE_Y);
-
-		wprintf(L"NOTE lane %d at y = %d\n", Notes[i].lane, y);
+		if (y >= 0 && y < SCREEN_HEIGHT)
+			Screen[y][x] = '0';
 	}
 }
 
 void DrawJudgeLine(void)
 {
-	wprintf(L"__________________________\n");
-	wprintf(L"             판정선\n");
+	for (int x = 0; x < SCREEN_WIDTH; x++)
+		Screen[JUDGE_LINE_Y][x] = '-';
+	
 }
 
 void RenderGame(ULONGLONG currentTime)
 {
 	ClearScreenBuffer();
 	DrawNotes(currentTime);
+	DrawLaneGuide();
 	DrawJudgeLine();
+	DrawKeyLabels();
+	RenderJudge();
+	PresentScreen();
+}
+
+void JudgeKey(int lane, ULONGLONG currentTime)
+{
+	for (int i = 0; i < NoteCount; i++)
+	{
+		if (!Notes[i].active) continue;
+		if (Notes[i].lane != lane) continue;
+
+		if (abs(Notes[i].y - JUDGE_LINE_Y) > JUDGE_Y_TOLERANCE)
+			continue;
+
+		long diff = (long)(currentTime - Notes[i].time);
+
+		if (abs(diff) <= JUDGE_PERFECT)
+		{
+			printf("PERFECT\n");
+			Notes[i].active = 0;
+			return;
+		}
+		else if (abs(diff) <= JUDGE_GOOD)
+		{
+			printf("GOOD\n");
+			Notes[i].active = 0;
+			return;
+		}
+	}
+}
+
+void RenderJudge(void)
+{
+	if (JudgeText[0] == '\0')return;
+
+	ULONGLONG now = GetTickCount64();
+
+	if (now - JudgeTime > 500)
+	{
+		JudgeText[0] = '\0';
+		return;
+	}
+	
+	int x = 15;
+	int y = JUDGE_LINE_Y + 2;
+
+	for (int i = 0; JudgeText[i] && x + i < 20; i++)
+		Screen[y][x + 1] = JudgeText[i];
+}
+
+void PresentScreen(void)
+{
+	gotoxy(0, 0);
+	
+	for (int y = 0; y < SCREEN_HEIGHT; y++)
+	{
+		for (int x = 0; x < SCREEN_WIDTH; x++)
+			putchar(Screen[y][x]);
+		putchar('\n');
+	}
+}
+
+void DrawKeyLabels(void)
+{
+	Screen[JUDGE_LINE_Y + 1][LANE_A_X] = 'A';
+	Screen[JUDGE_LINE_Y + 1][LANE_S_X] = 'S';
+	Screen[JUDGE_LINE_Y + 1][LANE_D_X] = 'D';
+	Screen[JUDGE_LINE_Y + 1][LANE_F_X] = 'F';
 }
