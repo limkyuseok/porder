@@ -11,7 +11,6 @@
 #pragma comment (lib, "winmm.lib")
 //#include "resource.rc"
 
-
 #define LANE_A_X 8
 #define LANE_S_X 14
 #define LANE_D_X 20
@@ -106,9 +105,14 @@ void PresentScreen(void);
 void DrawLaneGuide(void);
 void InitConsole(void);
 void DrawKeyLabels(void);
-void LoadMap(char* MapName);
+void LoadMap(const char* path);
 void DrawPlayTime(ULONGLONG currentTime);
 void HideCursor(void);
+
+void PlaySongPreview(const wchar_t* path, int startMs, int durationMs);
+
+void StopPreview(void);
+void StartPreview(const wchar_t* path, int startMs, int durationMs);
 
 void ResetScore(void);
 void ComputeResult(void);
@@ -122,11 +126,14 @@ ULONGLONG GameStartTime;
 HWND hWnd = NULL;
 HINSTANCE hInst = NULL;
 
+static int g_PreviewPlaying = 0;
+static ULONGLONG g_PreviewEndTime = 0;
+
 int LaneX[4] = { LANE_A_X, LANE_S_X, LANE_D_X, LANE_F_X };
 
 char Screen[SCREEN_HEIGHT][SCREEN_WIDTH];
-//char* NoteMapName = "replica - Yuuri [replica].map";
-//char* NoteMapName = "Hurai - AKMU [Hurai].map";
+//char* NoteMapName = "audio - Roll [audio].map";
+//char* NoteMapName = "Inferno - Mrs. Green Apple [Inferno].map";
 char* NoteMapName = "Silhouette - BackNumber [Silhouette].map";
 
 
@@ -150,7 +157,7 @@ typedef struct
 SONG_INFO SongList[] =
 {
 	{L"audio", L"Yuuri", L"audio.wav"},
-	{L"Hurai", L"AKMU", L"Hurai.wav"},
+	{L"Inferno", L"Mrs.Green Apple", L"Inferno.wav"},
 	{L"Silhouette", L"BackNumber", L"Silhouette.wav"},
 };
 
@@ -400,7 +407,7 @@ void Update(int key)
 void Render(HDC hdc)
 {
 	hWnd = GetConsoleWindow();
-	hInst - GetModuleHandle(NULL);
+	hInst = GetModuleHandle(NULL);
 	HDC hDC, hMemDC;
 	static HDC hBackDC;
 	HBITMAP hBackBitmap, h01dBitmap, hNewBitmap;
@@ -448,19 +455,6 @@ void UpdateSongPreview()
 	}
 }
 
-void PlayPreview(const char* path, int startMs)
-{
-	wchar_t cmd[256];
-
-	mciSendStringA(L"close priview", NULL, 0, NULL);
-
-	sprintf(cmd, L"open \"%s\" type mpegvideo alias preview", path);
-	mciSendStringA(cmd, NULL, 0, NULL);
-
-	sprintf(cmd, L"play preview from %d", startMs);
-	mciSendStringA(cmd, NULL, 0, NULL);
-}
-
 void TPoint(char* TStr)
 {
 	printf("%s", TStr);
@@ -485,6 +479,8 @@ void LoadMap(const char* path)
 	}
 }
 
+
+
 void SongSelect()
 {
 	int key = 0;
@@ -506,6 +502,12 @@ void SongSelect()
 		if (SongIndex != lastIndex)
 		{
 			PlaySongPreview(SongList[SongIndex].AudioPath, 30000, 4000);
+			lastIndex = SongIndex;
+		}
+
+		if (g_PreviewPlaying && GetTickCount64() >= g_PreviewEndTime)
+		{
+			StopPreview();
 		}
 
 		key = _getch();
@@ -520,6 +522,8 @@ void SongSelect()
 		}
 		else if (key == 13)
 		{
+			StopPreview();
+
 			GameStartTime = GetTickCount64();
 			LoadMapFile(L"replica.map");
 			PlayMusic(SongList[SongIndex].AudioPath);
@@ -527,6 +531,7 @@ void SongSelect()
 		}
 		else if (key == 27)
 		{
+			StopPreview();
 			StopMusic();
 			return;
 		}
@@ -711,7 +716,7 @@ void JudgeInput(int lane)
 
 		if (abs(diff) < 100)
 		{
-			strcpy(JudgeText, "PERPECT");
+			strcpy(JudgeText, "PERFECT");
 			JudgeTime = GetTickCount64();
 			Notes[i].active = 0;
 			return;
@@ -934,18 +939,43 @@ void HideCursor(void)
 	SetConsoleCursorInfo(h, &info);
 }
 
+void StopPreview(void)
+{
+	mciSendStringW(L"stop preview", NULL, 0, NULL);
+	mciSendStringW(L"close preview", NULL, 0, NULL);
+	g_PreviewPlaying = 0;
+}
+
+void StartPreview(const wchar_t* path, int startMs, int durationMs)
+{
+	wchar_t cmd[256];
+
+	StopPreview();
+
+	swprintf(cmd, 256, L"open \" %ls\" type waveaudio alias preview", path);
+	mciSendStringW(cmd, NULL, 0, NULL);
+
+	swprintf(cmd, 256, L"play preview from %d", startMs);
+	mciSendStringW(cmd, NULL, 0, NULL);
+
+	g_PreviewPlaying = 1;
+	g_PreviewEndTime = GetTickCount64() + (ULONGLONG)durationMs;
+}
+
 void PlaySongPreview(const wchar_t* path, int startMs, int durationMs)
 {
 	wchar_t cmd[256];
 
-	mciSendStringW(L"clos preview", NULL, 0, NULL);
+	mciSendStringW(L"close preview", NULL, 0, NULL);
 
-	swprintf(cmd, 256, L"open\"%ls\" type waveaudio alias preview", path);
+	swprintf(cmd, 256, L"open \"%ls\" type waveaudio alias preview", path);
 	mciSendStringW(cmd, NULL, 0, NULL);
 
-	swprintf(cmd, 256, L"play preview from &d", startMs);
+	swprintf(cmd, 256, L"play preview from %d", startMs);
 	mciSendStringW(cmd, NULL, 0, NULL);
 
 	Sleep(durationMs);
-	mciSendStringW(L"stop Preview", NULL, 0, NULL);
+
+	mciSendStringW(L"stop preview", NULL, 0, NULL);
+	mciSendStringW(L"close preview", NULL, 0, NULL);
 }

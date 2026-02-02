@@ -1,20 +1,11 @@
 ﻿  Source.c
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(351,17): warning C4133: '함수': 'const char *'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(352,29): warning C4133: '함수': 'const char *'과(와) 'const wchar_t *' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(404,8): warning C4552: '>>': 식의 결과가 사용되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(407,10): warning C4101: 'hBackBitmap' :참조되지 않은 지역 변수입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(407,23): warning C4101: 'h01dBitmap' :참조되지 않은 지역 변수입니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(456,17): warning C4133: '함수': 'unsigned short [14]'과(와) 'LPCSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(458,10): warning C4133: '함수': 'wchar_t [256]'과(와) 'char *const ' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(458,15): warning C4133: '함수': 'unsigned short [39]'과(와) 'const char *const ' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(459,17): warning C4133: '함수': 'wchar_t [256]'과(와) 'LPCSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(461,10): warning C4133: '함수': 'wchar_t [256]'과(와) 'char *const ' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(461,15): warning C4133: '함수': 'unsigned short [21]'과(와) 'const char *const ' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(462,17): warning C4133: '함수': 'wchar_t [256]'과(와) 'LPCSTR' 사이의 형식이 호환되지 않습니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(470,26): warning C4028: 정식 매개 변수 1이(가) 선언과 다릅니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(537,37): warning C4047: '함수': 'DWORD_PTR'의 간접 참조 수준이 'void *'과(와) 다릅니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(537,37): warning C4024: 'mciSendCommandW': 형식 및 실제 매개 변수 4의 형식이 서로 다릅니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(542,36): warning C4047: '함수': 'DWORD_PTR'의 간접 참조 수준이 'void *'과(와) 다릅니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(542,36): warning C4024: 'mciSendCommandW': 형식 및 실제 매개 변수 4의 형식이 서로 다릅니다.
-C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(801,22): warning C4244: '함수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(357,17): warning C4133: '함수': 'const char *'과(와) 'LPCWSTR' 사이의 형식이 호환되지 않습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(358,29): warning C4133: '함수': 'const char *'과(와) 'const wchar_t *' 사이의 형식이 호환되지 않습니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(413,10): warning C4101: 'hBackBitmap' :참조되지 않은 지역 변수입니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(413,23): warning C4101: 'h01dBitmap' :참조되지 않은 지역 변수입니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(543,37): warning C4047: '함수': 'DWORD_PTR'의 간접 참조 수준이 'void *'과(와) 다릅니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(543,37): warning C4024: 'mciSendCommandW': 형식 및 실제 매개 변수 4의 형식이 서로 다릅니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(548,36): warning C4047: '함수': 'DWORD_PTR'의 간접 참조 수준이 'void *'과(와) 다릅니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(548,36): warning C4024: 'mciSendCommandW': 형식 및 실제 매개 변수 4의 형식이 서로 다릅니다.
+C:\Users\임규석\Desktop\C언어\Program\porder\Source.c(807,22): warning C4244: '함수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   Program.vcxproj -> C:\Users\임규석\Desktop\C언어\Program\porder\x64\Debug\Program.exe
